@@ -1,81 +1,139 @@
-require(shiny)
-require(randomForest)
-require(ggplot2)
+#require(shiny)
+#require(randomForest)
+#require(ggplot2)
+
+#######################################################################################################################################
+#load packages
+#######################################################################################################################################
+if('randomForest' %in% installed.packages()){
+  require(package = 'randomForest',quietly = TRUE)
+}else{
+  cat('未安装"randomForest package",后台安装程序已启动')
+  install.packages(pkgs = 'randomForest',quiet = TRUE)
+  require(package = 'randomForest',quietly = TRUE)
+  cat('"randomForest package"安装成功')
+}
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+if('ggplot2' %in% installed.packages()){
+  require(package = 'ggplot2',quietly = TRUE)
+} else{
+  cat('未安装"ggplot2 package",后台安装程序已启动')
+  install.packages(pkgs = 'ggplot2',quiet = TRUE)
+  require(package = 'ggplot2',quietly = TRUE)
+  cat('"ggplot2 package"安装成功')
+}
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+if('shiny' %in% installed.packages()){
+  require(package = 'shiny',quietly = TRUE)
+}else{
+  cat('未安装"shiny package",后台安装程序已启动')
+  install.packages(pkgs = 'shiny',quiet = TRUE)
+  require(package = 'shiny',quietly = TRUE)
+  cat('"shiny package"安装成功')
+}
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 shinyUI(bootstrapPage(fluidPage(
   titlePanel("RandomForest"),
   #headerPanel("Hello Shiny!"),
   sidebarLayout(
     sidebarPanel(
-      fileInput('train_data', 'Choose CSV File',accept=c('text/csv','text/comma-separated-values,text/plain','.csv')),
-      #    tags$hr(),
+      fileInput(inputId = 'train_data', label = tags$div('train set *',style='color:blue'),accept=c('text/csv','text/comma-separated-values,text/plain','.csv')),
+
+      fileInput(inputId = 'test_data', label = tags$div('test set *',style='color:blue'), accept=c('text/csv','text/comma-separated-values,text/plain','.csv')),
+
       checkboxInput(inputId = 'header',label = 'header',value = TRUE),
-      radioButtons(inputId = 'separator',label = 'sep',choices = c(Comma=',',Semicolon=';',Tab='\t'),','),
-      #    radioButtons(inputId = 'quote',label = 'Quote',choices = c(None='','Double Quote'='"','Single Quote'="'"),'"'),
-      tags$hr(),
 
-      selectInput(inputId = 'type',label = 'type',choices = c('Classification','Regression')),
+radioButtons(inputId = 'separator',label = 'sep',choices = c(Comma=',',Semicolon=';',Tab='\t'),','),
 
-      tags$hr(),
-
-#      checkboxInput(inputId='test_set', label='Test set exist?', value = FALSE),
-
-#      tags$div('Test set exist?',style='color:blue'),
-      strong('Test set exist?'),
-
-      fileInput('test_data', 'Choose CSV File',accept=c('text/csv','text/comma-separated-values,text/plain','.csv')),
+      selectInput(inputId = 'type',label = tags$div('type',style='color:blue'),choices = c('Classification','Regression')),
 
       tags$hr(),
 
-      numericInput(inputId = "ntree", "Number of trees to grow", 100,min = 1, max = 2000),
+      numericInput(inputId = "ntree", label = tags$div('ntree',style='color:blue'), NA),
+
+      helpText(tags$div('Number of trees to grow',style='color:red')),
 
       tags$hr(),
 
-      selectInput(inputId = 'replace',label = 'Replace',choices = c(TRUE,FALSE),selected = FALSE),
+      numericInput(inputId = "mtry", label =tags$div('mtry',style='color:blue') , NA),
+
+      helpText(tags$div('Number of variables randomly sampled as candidates at each split',style='color:red')),
 
       tags$hr(),
 
-      numericInput(inputId = "sampsize", "Size(s) of sample to draw", 10,min = 1, max = 2000),
+      selectInput(inputId = 'replace',label = tags$div('replace',style='color:blue'),choices = c('YES','NO'),selected = 'YES'),
+
+      helpText(tags$div('Should sampling of cases be done with or without replacement?',style='color:red')),
 
       tags$hr(),
 
-      numericInput("nodesize", "Minimum size of terminal nodes", 10,min = 1, max = 2000),
+      numericInput(inputId = "sampsize", label =tags$div('sampsize',style='color:blue') , NA),
+
+      helpText(tags$div('Size(s) of sample to draw',style='color:red')),
 
       tags$hr(),
 
-      numericInput("maxnodes", "Maximum number of terminal nodes trees in the forest can have", 10,min = 1, max = 2000),
+#      numericInput(inputId = "nodesize", label = tags$div('nodesize',style='color:blue'), NA),
+
+#      helpText(tags$div('Minimum size of terminal nodes',style='color:red')),
+
+#      tags$hr(),
+
+#      numericInput(inputId = "maxnodes", label = tags$div('maxnodes',style='color:blue'), NA),
+
+#      helpText(tags$div('Maximum number of terminal nodes trees in the forest can have',style='color:red')),
+
+#      tags$hr(),
+
+      selectInput(inputId = 'importance',label = tags$div('importance',style='color:blue'),choices = c('YES','NO'),selected = 'YES'),
+
+      helpText(tags$div('Should importance of predictors be assessed?',style='color:red')),
 
       tags$hr(),
 
-      selectInput(inputId = 'importance',label = 'Should importance of predictors be assessed?',choices = c(TRUE,FALSE),selected = FALSE),
+#      numericInput(inputId = "nPerm", label = tags$div('nPerm',style='color:blue'), NA),
+
+#      helpText(tags$div('Number of times the OOB data are permuted per tree for assessing variable importance',style='color:red')),
+
+#      tags$hr(),
+
+      selectInput(inputId = 'proximity',label =tags$div('proximity',style='color:blue') ,choices = c('YES','NO'),selected = 'YES'),
+
+      helpText(tags$div('Should proximity measure among the rows be calculated?',style='color:red')),
 
       tags$hr(),
 
-      numericInput("nPerm", "Number of times the OOB data are permuted per tree for assessing variable importance", 1,min = 1, max = 20),
+      selectInput(inputId = 'oob.prox',label = tags$div('oob.prox',style='color:blue'),choices = c('YES','NO'),selected = 'YES'),
+
+      helpText(tags$div('Should proximity be calculated only on "out-of-bag" data?',style='color:red')),
 
       tags$hr(),
 
-      selectInput(inputId = 'proximity',label = 'Should proximity measure among the rows be calculated?',choices = c(TRUE,FALSE),selected = FALSE),
+      selectInput(inputId = 'keep.forest',label = tags$div('keep.forest',style='color:blue'),choices = c('YES','NO'),selected = 'YES'),
+
+      helpText(tags$div('Should forest be retained in the output object?',style='color:red')),
 
       tags$hr(),
 
-      selectInput(inputId = 'oob.prox',label = 'Should proximity be calculated only on "out-of-bag" data?',choices = c(TRUE,FALSE),selected = FALSE),
+      numericInput(inputId = "getTree", label =tags$div('getTree',style='color:blue') , NA),
+
+      helpText(tags$div('Extract a single tree from a forest',style='color:red')),
 
       tags$hr(),
 
-      selectInput(inputId = 'keep.forest',label = 'Should forest be retained in the output object?',choices = c(TRUE,FALSE),selected = TRUE),
+      actionButton(inputId = "quit", label = tags$div('Stop',style='color:blue')),
 
-      tags$hr(),
-
-      #submitButton("Update View", icon = icon("refresh"))
-      actionButton("quit", "Stop")
+      helpText(tags$div('Press Quit to exit the application',style='color:red'))
     ),
     mainPanel(
-      #tableOutput('contents')
       tabsetPanel(id = "tabs",
-                  tabPanel("train data", dataTableOutput('contents')),
-                  tabPanel("model call", verbatimTextOutput("summary"))
-                  #tabPanel("model type", renderPrint(""))
+                  tabPanel("train set", dataTableOutput('train_data')),
+                  tabPanel("test set", dataTableOutput("test_data")),
+                  tabPanel("model summary", verbatimTextOutput("summary")),
+                  tabPanel("getTree", verbatimTextOutput("getTree")),
+                  tabPanel("margin plot", plotOutput("marginPlot")),
+                  tabPanel("randomForest plot", plotOutput("randomForest"))
       )
     )
 
