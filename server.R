@@ -1,124 +1,29 @@
 options(shiny.maxRequestSize=30*1024^2)
-#require(shiny)
-#require(randomForest)
-#require(ggplot2)
 
-if(getRversion() >= "2.15.1") utils::globalVariables(c('train_data', 'test_data', 'rand_model'))
-#######################################################################################################################################
-#load packages
-#######################################################################################################################################
-if('randomForest' %in% installed.packages()){
-  require(package = 'randomForest',quietly = TRUE)
-}else{
-  cat('未安装"randomForest package",后台安装程序已启动')
-  install.packages(pkgs = 'randomForest',quiet = TRUE)
-  require(package = 'randomForest',quietly = TRUE)
-  cat('"randomForest package"安装成功')
-}
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-if('ggplot2' %in% installed.packages()){
-  require(package = 'ggplot2',quietly = TRUE)
-} else{
-  cat('未安装"ggplot2 package",后台安装程序已启动')
-  install.packages(pkgs = 'ggplot2',quiet = TRUE)
-  require(package = 'ggplot2',quietly = TRUE)
-  cat('"ggplot2 package"安装成功')
-}
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-if('shiny' %in% installed.packages()){
-  require(package = 'shiny',quietly = TRUE)
-}else{
-  cat('未安装"shiny package",后台安装程序已启动')
-  install.packages(pkgs = 'shiny',quiet = TRUE)
-  require(package = 'shiny',quietly = TRUE)
-  cat('"shiny package"安装成功')
-}
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+if(getRversion() >= "2.15.1") utils::globalVariables(c('plot_1', 'plot_2', 'rand_model','margin','model_list'))
 
-#######################################################################################################################################
-#shiny server
-#######################################################################################################################################
 shinyServer(function(input, output) {
 
-  q <- observe({
-    # Stop the app when the quit button is clicked
-    if (input$quit == 1) stopApp()
+  output$names <- renderPrint({
+    train_data <- input$train_data
+    if(is.null(train_data)){
+      return(NULL)
+    }
+    else{
+      name <- names(read.csv(file = train_data$datapath,header = input$header,sep = input$separator,quote = input$quote))
+      feature_name <- c()
+      for(i in 1:length(name)-1){
+        feature_name[i] <- paste('feature_',i,":",name[i],"\n",sep="")
+      }
+      feature_name[length(name)] <- paste('feature_',length(name),':',name[length(name)],"\n",sep="")
+      cat('',feature_name)
+    }
   })
 
-  #  train_data  <<- reactive({
-  #    if(is.null(input$train_data))
-  #    {
-  #      return(NULL)
-  #    }
-  #    else{
-  #      as.data.frame(read.csv(file = train_data$datapath,header = input$header,sep = input$separator,quote = input$quote))
-  #    }
-  #  })
 
-  #  test_data <<- reactive({
-  #    if(is.null(test_data)){
-  #      return(NULL)
-  #    }
-  #    else{
-  #      as.data.frame(read.csv(file = test_data$datapath,header = input$header,sep = input$separator,quote = input$quote))
-  #    }
-  #  })
-
-  #type <- reactive({
-  #  input$type
-  #})
-
-  #ntree <- reactive({
-  #  input$ntree
-  #})
-
-  #mtry <- reactive({
-  #  input$mtry
-  #})
-
-  #replace <- reactive({
-  #  input$replace
-  #})
-
-  #sampsize <- reactive({
-  #  input$sampsize
-  #})
-
-  #nodesize <- reactive({
-  #  input$nodesize
-  #})
-
-  #maxnodes <- reactive({
-  #  input$maxnodes
-  #})
-
-  #importance <- reactive({
-  #  input$importance
-  #})
-
-  #nPerm <- reactive({
-  #  input$nPerm
-  #})
-
-  #proximity <- reactive({
-  #  input$proximity
-  #})
-
-  #oob.prox <- reactive({
-  #  input$oob.prox
-  #})
-
-  #keep.forest <- reactive({
-  #  input$keep.forest
-  #})
-
-  #  rand_model <- reactive({
-  #  randomForest(x=train_data[,1:ncol(train_data)-1],y=train_data[,ncol(train_data)-1:ncol(train_data)],xtest = test_data[,1:ncol(test_data)-1],ytest = test_data[,ncol(test_data)-1:ncol(test_data)],ntree = ntree,mtry = mtry,replace = replace,sampsize = sampsize,nodesize = nodesize,maxnodes = maxnodes,importance = importance,nPerm = nPerm,proximity = proximity,oob.prox = oob.prox,keep.inbag = keep.inbag)
-  #   randomForest(x=train_data[,1:ncol(train_data)-1],y=train_data[,ncol(train_data)-1:ncol(train_data)],ntree = 10)
-  #    randomForest(x=train_data[,1:14],y=train_data[,15],ntree = 10)
-  #  })
-
-
+  q <- observe({
+    if (input$quit == 1) stopApp()
+  })
 
   output$train_data <- renderDataTable({
     train_data <- input$train_data
@@ -230,17 +135,23 @@ shinyServer(function(input, output) {
     names(margin) <- NULL
     margin <- data.frame(x=c(1:length(margin)),y=margin)
 
-    gg  <- ggplot(data=margin,mapping=aes(x=x,y=y))
+    margin_1 <<- margin
 
-    gg <- gg + geom_point(colour=I('steelblue'),size=I(3))
+    plot_1  <<- ggplot(data=margin,mapping=aes(x=x,y=y))
 
-    gg <- gg+labs(x='index',y='margin',title='margin plot')
+    plot_1 <<- plot_1 + geom_point(colour=I('steelblue'),size=I(3))
 
-    gg <- gg+theme(plot.title=element_text(size=20,face='bold'),axis.title.x=element_text(size=15),axis.title.y=element_text(size=15))
+    plot_1 <<- plot_1+labs(x='index',y='margin',title='margin plot')
 
-    print(gg)
+    plot_1 <<- plot_1+theme(plot.title=element_text(size=20,face='bold'),axis.title.x=element_text(size=15),axis.title.y=element_text(size=15))
+
+    print(plot_1)
   })
 
+
+  #  output$features_select <- renderUI({
+  #    names <- colnames(read.csv(file = train_data$datapath,header = input$header,sep = input$separator,quote = input$quote))
+  #   })
 
   output$randomForest <- renderPlot({
     test <- !(is.null(rand_model$test$mse) || is.null(rand_model$test$err.rate))
@@ -253,26 +164,268 @@ shinyServer(function(input, output) {
     }
     if(test) {
       data <- data.frame(Trees=1:rand_model$ntree,OOB=err[,1],Test=err[,2])
-      gg <- ggplot(data=data,mapping = aes(x=Trees,y=OOB))
-      gg <- gg + geom_line(colour=I('steelblue'),size=I(1.1))
-      gg <- gg + geom_line(data = data,mapping = aes(x=Trees,y=Test))
-      gg <- gg+labs(x='Trees',y='Errors',title='randomForest Error')
-      gg <- gg+theme(plot.title=element_text(size=20,face='bold'),axis.title.x=element_text(size=15),axis.title.y=element_text(size=15))
+      plot_2 <- ggplot(data=data,mapping = aes(x=Trees,y=OOB))
+      plot_2 <- plot_2 + geom_line(colour=I('steelblue'),size=I(1.1))
+      plot_2 <- plot_2 + geom_line(data = data,mapping = aes(x=Trees,y=Test))
+      plot_2 <- plot_2+labs(x='Trees',y='Errors',title='randomForest Error')
+      plot_2 <- plot_2+theme(plot.title=element_text(size=20,face='bold'),axis.title.x=element_text(size=15),axis.title.y=element_text(size=15))
 
-      print(gg)
+      print(plot_2)
     } else {
 
       data <- data.frame(Trees=1:rand_model$ntree,OOB=err[,1])
 
-      gg <- ggplot(data=data,mapping = aes(x=Trees,y=OOB))
-      gg <- gg + geom_line(colour=I('steelblue'),size=I(1.1))
-      gg <- gg+labs(x='Trees',y='Errors',title='RandomForest Model')
-      gg <- gg+theme(plot.title=element_text(size=20,face='bold'),axis.title.x=element_text(size=15),axis.title.y=element_text(size=15))
-      print(gg)
+      plot_2 <- ggplot(data=data,mapping = aes(x=Trees,y=OOB))
+      plot_2 <- plot_2 + geom_line(colour=I('steelblue'),size=I(1.1))
+      plot_2 <- plot_2+labs(x='Trees',y='Errors',title='RandomForest Model')
+      plot_2 <- plot_2+theme(plot.title=element_text(size=20,face='bold'),axis.title.x=element_text(size=15),axis.title.y=element_text(size=15))
+      print(plot_2)
 
     }
 
   })
+
+  plot_margin <- function(){
+    margin <- as.list(margin(rand_model))
+    margin <- sapply(X = margin,FUN = '[')
+    margin <- sort(x = margin,decreasing = FALSE)
+    names(margin) <- NULL
+    margin <- data.frame(x=c(1:length(margin)),y=margin)
+
+    plot  <- ggplot(data=margin,mapping=aes(x=x,y=y))
+    plot <- plot + geom_point(colour=I('steelblue'),size=I(3))
+    plot <- plot+labs(x='index',y='margin',title='margin plot')
+    plot <- plot+theme(plot.title=element_text(size=20,face='bold'),axis.title.x=element_text(size=15),axis.title.y=element_text(size=15))
+    print(plot)
+  }
+
+  plot_randomForest <- function(){
+    test <- !(is.null(rand_model$test$mse) || is.null(rand_model$test$err.rate))
+    if(rand_model$type == "regression") {
+      err <- as.data.frame(rand_model$mse)
+      if(test) err <- as.data.frame(cbind(err, rand_model$test$mse))
+    } else {
+      err <- as.data.frame(rand_model$err.rate)
+      if(test) err <- as.data.frame(cbind(err, rand_model$test$err.rate))
+    }
+    if(test) {
+      data <- data.frame(Trees=1:rand_model$ntree,OOB=err[,1],Test=err[,2])
+      plot_2 <- ggplot(data=data,mapping = aes(x=Trees,y=OOB))
+      plot_2 <- plot_2 + geom_line(colour=I('steelblue'),size=I(1.1))
+      plot_2 <- plot_2 + geom_line(data = data,mapping = aes(x=Trees,y=Test))
+      plot_2 <- plot_2+labs(x='Trees',y='Errors',title='randomForest Error')
+      plot_2 <- plot_2+theme(plot.title=element_text(size=20,face='bold'),axis.title.x=element_text(size=15),axis.title.y=element_text(size=15))
+
+      print(plot_2)
+    } else {
+
+      data <- data.frame(Trees=1:rand_model$ntree,OOB=err[,1])
+
+      plot_2 <- ggplot(data=data,mapping = aes(x=Trees,y=OOB))
+      plot_2 <- plot_2 + geom_line(colour=I('steelblue'),size=I(1.1))
+      plot_2 <- plot_2+labs(x='Trees',y='Errors',title='RandomForest Model')
+      plot_2 <- plot_2+theme(plot.title=element_text(size=20,face='bold'),axis.title.x=element_text(size=15),axis.title.y=element_text(size=15))
+      print(plot_2)
+
+    }
+  }
+
+  save_randomForest <- function(file){
+
+    model_list <- list(call=rand_model$call,
+                       type=rand_model$type,
+                       predicted=if(!is.null(rand_model$predicted)) rand_model$predicted else NULL,
+                       importance=if(!is.null(rand_model$importance)) rand_model$importance else NULL,
+                       importanceSD=if(!is.null(rand_model$importanceSD)) rand_model$importanceSD else NULL,
+                       ntree=if(!is.null(rand_model$ntree)) rand_model$ntree else NULL,
+                       mtry=if(!is.null(rand_model$mtry)) rand_model$mtry else NULL,
+                       forest=if(!is.null(rand_model$forest)) rand_model$forest else NULL,
+                       err.rate=if(!is.null(rand_model$err.rate)) rand_model$err.rate else NULL,
+                       confusion=if(!is.null(rand_model$confusion)) rand_model$confusion else NULL,
+                       proximity=if(!is.null(rand_model$proximity)) rand_model$proximity else NULL,
+                       mse=if(!is.null(rand_model$mse)) rand_model$mse else NULL)
+
+
+    cat(paste(model_list[[1]]),'\n',paste(model_list[[2]]),'\n',paste(model_list[[3]]),'\n',paste(model_list[[4]]),'\n',paste(model_list[[5]]),'\n',paste(model_list[[6]]),'\n',paste(model_list[[7]]),'\n',paste(model_list[[8]]),'\n',paste(model_list[[9]]),paste(model_list[[10]]),paste(model_list[[11]]),file = file,sep = ' ',append = T)
+
+  }
+
+  save_tree <- function(file){
+
+    getT <- getTree(rfobj = rand_model,k = input$getTree,labelVar=TRUE)
+
+    tree_list <- list(tree=getT)
+
+    cat(paste(tree_list[[1]]),file = file,sep = ' ',append = T)
+
+  }
+
+
+  output$downloadReport <- downloadHandler(
+    filename = function() {
+      paste('RandomForestReport', sep = '.', switch(
+        input$format, PDF = 'pdf', HTML = 'html', Word = 'docx'
+      ))
+    },
+
+    content = function(file) {
+      model_list <- list(call=rand_model$call,
+                         type=rand_model$type,
+                         predicted=if(!is.null(rand_model$predicted)) rand_model$predicted else NULL,
+                         importance=if(!is.null(rand_model$importance)) rand_model$importance else NULL,
+                         importanceSD=if(!is.null(rand_model$importanceSD)) rand_model$importanceSD else NULL,
+                         ntree=if(!is.null(rand_model$ntree)) rand_model$ntree else NULL,
+                         mtry=if(!is.null(rand_model$mtry)) rand_model$mtry else NULL,
+                         forest=if(!is.null(rand_model$forest)) rand_model$forest else NULL,
+                         err.rate=if(!is.null(rand_model$err.rate)) rand_model$err.rate else NULL,
+                         confusion=if(!is.null(rand_model$confusion)) rand_model$confusion else NULL,
+                         proximity=if(!is.null(rand_model$proximity)) rand_model$proximity else NULL,
+                         mse=if(!is.null(rand_model$mse)) rand_model$mse else NULL)
+      cat('---
+title: "',input$title,'"
+author: "',input$author,'"
+date: ',date(),'
+output:', input$format,'_document
+---
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+```{r,echo=T,prompt=T}
+summary(rand_model)
+```
+```{r,echo=T,prompt=T}
+model_list
+plot_randomForest()
+plot_margin()
+```       ',file='RandomForestReport.Rmd',append=F)
+
+      #  src <- normalizePath('report.Rmd')
+      # temporarily switch to the temp dir, in case you do not have write
+      # permission to the current working directory
+      #  owd <- setwd(tempdir())
+      #  on.exit(setwd(owd))
+      #  file.copy(src, 'report.Rmd')
+
+      out <- render('RandomForestReport.Rmd', switch(
+        input$format,
+        PDF = pdf_document(), HTML = html_document(), Word = word_document()
+      ))
+      file.rename(out, file)
+    }
+  )
+
+
+  output$downloadRandomForest=downloadHandler(filename = function() {
+    paste('summaryofTree','.txt', sep='')
+  },
+  content = function(file) {
+    sink(file = file)
+    save_tree(file)
+    sink()
+  },
+  contentType='text/csv')
+
+
+
+  output$downloadTree=downloadHandler(filename = function() {
+    paste('summaryofTree','.txt', sep='')
+  },
+  content = function(file) {
+    sink(file = file)
+    save_randomForest(file)
+    sink()
+  },
+  contentType='text/csv')
+
+
+
+  output$downloadData1 = downloadHandler(
+    filename = function() {
+      paste('margin','.jpg', sep='')
+    },
+    content = function(file) {
+      jpeg(file)
+      plot_margin()
+      dev.off()
+    },
+    contentType='image/jpg')
+
+  output$downloadData2 = downloadHandler(
+    filename = function() {
+      paste('margin','.png', sep='')
+    },
+    content = function(file) {
+      png(file)
+      plot_margin()
+      dev.off()
+    },
+    contentType='image/png')
+
+  info1  <- reactive({
+    info1 <- paste("This analysis was performed on ", format(Sys.time(), "%A, %B %d %Y at %I:%M:%S %p"), ".", sep = "")
+    info2 <- paste(strsplit(R.version$version.string, " \\(")[[1]][1], " was used for this session.", sep = "")
+    info3 <- paste("Package version infomation for this session:")
+    info4 <- paste("shiny", packageVersion("shiny"))
+    info5 <- paste("randomForest", packageVersion("randomForest"))
+    info6 <- paste("ggplot2", packageVersion("ggplot2"))
+    info7 <- paste("ggplot2", packageVersion("shinyAce"))
+
+    cat(sprintf(info1), "\n")
+    cat(sprintf(info2), "\n")
+    cat(sprintf(info3), "\n")
+    cat(sprintf(info4), "\n")
+    cat(sprintf(info5), "\n")
+    cat(sprintf(info6), "\n")
+    cat(sprintf(info7), "\n")
+  })
+
+  output$info1.out <- renderPrint({
+    info1()
+  })
+
+  output$downloadData3 = downloadHandler(
+    filename = function() {
+      paste('margin','.pdf', sep='')
+    },
+    content = function(file) {
+      pdf(file)
+      plot_margin()
+      dev.off()
+    },
+    contentType='image/pdf')
+
+  output$downloadData4 = downloadHandler(
+    filename = function() {
+      paste('randomForest','.jpg', sep='')
+    },
+    content = function(file) {
+      jpeg(file)
+      plot_randomForest()
+      dev.off()
+    },
+    contentType='image/jpg')
+
+  output$downloadData5 = downloadHandler(
+    filename = function() {
+      paste('randomForest','.png', sep='')
+    },
+    content = function(file) {
+      png(file)
+      plot_randomForest()
+      dev.off()
+    },
+    contentType='image/png')
+
+  output$downloadData6 = downloadHandler(
+    filename = function() {
+      paste('randomForest','.pdf', sep='')
+    },
+    content = function(file) {
+      pdf(file)
+      plot_randomForest()
+      dev.off()
+    },
+    contentType='image/pdf')
 
 }
 )
