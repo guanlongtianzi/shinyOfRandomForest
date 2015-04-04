@@ -368,7 +368,8 @@ plot_margin()
     info4 <- paste("shiny", packageVersion("shiny"))
     info5 <- paste("randomForest", packageVersion("randomForest"))
     info6 <- paste("ggplot2", packageVersion("ggplot2"))
-    info7 <- paste("ggplot2", packageVersion("shinyAce"))
+    info7 <- paste("shinyAce", packageVersion("shinyAce"))
+    info8 <- paste("rmarkdown", packageVersion("rmarkdown"))
 
     cat(sprintf(info1), "\n")
     cat(sprintf(info2), "\n")
@@ -377,6 +378,7 @@ plot_margin()
     cat(sprintf(info5), "\n")
     cat(sprintf(info6), "\n")
     cat(sprintf(info7), "\n")
+    cat(sprintf(info8), "\n")
   })
 
   output$info1.out <- renderPrint({
