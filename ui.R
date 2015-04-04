@@ -7,7 +7,7 @@ shinyUI(bootstrapPage(fluidPage(
       wellPanel(
         div(align="center",fileInput(inputId = 'train_data', label = tags$div('train set *',style='color:blue'),accept=c('text/csv','text/comma-separated-values,text/plain','.csv'))),
         div(align="center",fileInput(inputId = 'test_data', label = tags$div('test set *',style='color:blue'), accept=c('text/csv','text/comma-separated-values,text/plain','.csv'))),
-        div(align="center",checkboxInput("file_param","Show fileReader parameters",FALSE)),
+        div(align="center",checkboxInput("file_param","Show FileReader parameters",FALSE)),
         conditionalPanel(condition = "input.file_param==true",
                          checkboxInput(inputId = 'header',label = 'header',value = TRUE),
                          radioButtons(inputId = 'separator',label = 'sep',choices = c(Comma=',',Semicolon=';',Tab='\t'),',')
@@ -45,12 +45,8 @@ shinyUI(bootstrapPage(fluidPage(
                 ))
       ),
 
-      div(align="center",actionButton(inputId = "quit", label = div(align="center",'Quit the app',style='color:blue'))),
-      tags$br(),
-      wellPanel(
-        tags$div('R session info',style='color:blue'),
-        verbatimTextOutput("info1.out")
-      )
+      div(align="center",actionButton(inputId = "quit", label = div(align="center",'Quit the app',style='color:blue')))
+
 
 
     ),
@@ -59,12 +55,16 @@ shinyUI(bootstrapPage(fluidPage(
                   tabPanel("train set", dataTableOutput('train_data')),
                   tabPanel("test set", dataTableOutput("test_data")),
                   tabPanel("model summary",
-                           div(align="center",textInput(inputId = 'title',label = 'title',value = 'title')),
-                           div(align="center",textInput(inputId = 'author',label = 'author',value = 'author')),
-                           #dateInput(inputId = 'date',label = 'date',value = Sys.Date(),format = 'yyyy-mm-dd',startview = 'month',language = 'en'),
-                           div(align="center",radioButtons('format', 'Document format', c('PDF', 'HTML', 'Word'),inline = TRUE)),
-                           div(align="center",downloadButton(outputId = 'downloadReport',label = 'Download Report')),
+                           wellPanel(
+                             div(align="center",textInput(inputId = 'title',label = 'title',value = 'title')),
+                             div(align="center",textInput(inputId = 'author',label = 'author',value = 'author')),
+                             tags$br(),
+                             div(align="center",radioButtons('format', 'Document format', c('PDF', 'HTML', 'Word'),inline = TRUE)),
+                             tags$br(),
+                             div(align="center",downloadButton(outputId = 'downloadReport',label = 'Download Report'))
+                           ),
                            tags$br(),
+                           verbatimTextOutput("names"),
                            verbatimTextOutput("summary"),
                            tags$br(),
                            tags$br(),
@@ -74,13 +74,12 @@ shinyUI(bootstrapPage(fluidPage(
                            div(align="center",numericInput(inputId = "getTree", label =tags$div('getTree',style='color:blue') , NA)),
                            tags$br(),
                            tags$br(),
-                          # helpText(tags$div('Extract a single tree from a forest',style='color:red')),
                            verbatimTextOutput("getTree"),
                            tags$br(),
                            tags$br(),
                            p(downloadButton("downloadRandomForest","Download the summary"),align="center")
                   ),
-                  tabPanel("margin plot", plotOutput("marginPlot"),
+                  tabPanel('plots',plotOutput("marginPlot"),
                            tags$br(),
                            tags$br(),
                            div(align="center",conditionalPanel(
@@ -91,9 +90,10 @@ shinyUI(bootstrapPage(fluidPage(
                              p(downloadButton("downloadData2","Download as png"),align="center"))),
                            div(align="center",conditionalPanel(
                              condition="input.paramdown=='pdf'",
-                             p(downloadButton("downloadData3","Download as pdf"),align="center")))
-                  ),
-                  tabPanel("randomForest plot", plotOutput("randomForest"),
+                             p(downloadButton("downloadData3","Download as pdf"),align="center"))),
+                           tags$br(),
+                           tags$br(),
+                           plotOutput("randomForest"),
                            tags$br(),
                            tags$br(),
                            div(align="center",conditionalPanel(
@@ -105,10 +105,38 @@ shinyUI(bootstrapPage(fluidPage(
                            div(align="center",conditionalPanel(
                              condition="input.paramdown=='pdf'",
                              p(downloadButton("downloadData6","Download as pdf"),align="center")))
+
                   ),
-                  tabPanel(title = 'features',
-                           verbatimTextOutput("names")
-                  ),
+
+                  #                  tabPanel("margin plot", plotOutput("marginPlot"),
+                  #                           tags$br(),
+                  #                           tags$br(),
+                  #                           div(align="center",conditionalPanel(
+                  #                             condition="input.paramdown=='jpg'",
+                  #                             p(downloadButton("downloadData1","Download as jpg"),align="center"))),
+                  #                           div(align="center",conditionalPanel(
+                  #                             condition="input.paramdown=='png'",
+                  #                             p(downloadButton("downloadData2","Download as png"),align="center"))),
+                  #                           div(align="center",conditionalPanel(
+                  #                             condition="input.paramdown=='pdf'",
+                  #                             p(downloadButton("downloadData3","Download as pdf"),align="center")))
+                  #                  ),
+                  #                  tabPanel("randomForest plot", plotOutput("randomForest"),
+                  #                           tags$br(),
+                  #                           tags$br(),
+                  #                           div(align="center",conditionalPanel(
+                  #                             condition="input.paramdown=='jpg'",
+                  #                             p(downloadButton("downloadData4","Download as jpg"),align="center"))),
+                  #                           div(align="center",conditionalPanel(
+                  #                             condition="input.paramdown=='png'",
+                  #                             p(downloadButton("downloadData5","Download as png"),align="center"))),
+                  #                           div(align="center",conditionalPanel(
+                  #                             condition="input.paramdown=='pdf'",
+                  #                             p(downloadButton("downloadData6","Download as pdf"),align="center")))
+                  #                  ),
+                  #                 tabPanel(title = 'features',
+                  #                           verbatimTextOutput("names")
+                  #                  ),
                   tabPanel("About",
                            strong('randomForest with Shiny'),
                            p("The goal of this project is to help students and researchers run randomForest analysis as easily as possible."),
@@ -117,28 +145,25 @@ shinyUI(bootstrapPage(fluidPage(
                              ''),
                            p('The code for this application is available at this',
                              a('GitHub.', href='https://github.com/guanlongtianzi/shinyOfRandomForest', target="_blank")),
-
-
                            br(),
 
                            strong('List of Packages Used'), br(),
 
-                           aceEditor("myEditor1", value = '#R Scripts \nrequire(shiny)\nrequire(randomForest)\nrequire(ggplot2)\nrequire(shinyAce)', mode="r",height = '200px',fontSize = 15,theme="ambiance"),
+                           aceEditor("myEditor1", value = '#R Scripts \nrequire(shiny)\nrequire(randomForest)\nrequire(ggplot2)\nrequire(shinyAce)\nrequire(rmarkdown)', mode="r",height = '200px',fontSize = 15,theme="ambiance"),
 
                            #                           code('library(shiny)'),br(),
                            #                           code('library(randomForest)'),br(),
                            #                           code('library(ggplot2)'),br(),
-
-
                            br(),
-
                            strong('Authors'),
-
                            HTML('<div style="clear: left;"><img src="my.jpg" alt="" style="float: left; margin-right:5px" /></div>'),
-
                            br(),
-
-                           p(br())
+                           br(),
+                           br(),
+                           wellPanel(
+                             tags$div('R session info',style='color:blue'),
+                             verbatimTextOutput("info1.out")
+                           )
 
                   )
 
