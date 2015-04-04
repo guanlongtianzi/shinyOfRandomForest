@@ -1,142 +1,149 @@
-#require(shiny)
-#require(randomForest)
-#require(ggplot2)
-
-#######################################################################################################################################
-#load packages
-#######################################################################################################################################
-if('randomForest' %in% installed.packages()){
-  require(package = 'randomForest',quietly = TRUE)
-}else{
-  cat('未安装"randomForest package",后台安装程序已启动')
-  install.packages(pkgs = 'randomForest',quiet = TRUE)
-  require(package = 'randomForest',quietly = TRUE)
-  cat('"randomForest package"安装成功')
-}
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-if('ggplot2' %in% installed.packages()){
-  require(package = 'ggplot2',quietly = TRUE)
-} else{
-  cat('未安装"ggplot2 package",后台安装程序已启动')
-  install.packages(pkgs = 'ggplot2',quiet = TRUE)
-  require(package = 'ggplot2',quietly = TRUE)
-  cat('"ggplot2 package"安装成功')
-}
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-if('shiny' %in% installed.packages()){
-  require(package = 'shiny',quietly = TRUE)
-}else{
-  cat('未安装"shiny package",后台安装程序已启动')
-  install.packages(pkgs = 'shiny',quiet = TRUE)
-  require(package = 'shiny',quietly = TRUE)
-  cat('"shiny package"安装成功')
-}
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
 shinyUI(bootstrapPage(fluidPage(
   titlePanel("RandomForest"),
-  #headerPanel("Hello Shiny!"),
+  # aceEditor("myEditor", value = '#R Scripts', mode="r",height = '200px',fontSize = 15,theme="ambiance"),
+  conditionalPanel(condition="$('html').hasClass('shiny-busy')",tags$div("Loading...",id="loadmessage")),
   sidebarLayout(
     sidebarPanel(
-      fileInput(inputId = 'train_data', label = tags$div('train set *',style='color:blue'),accept=c('text/csv','text/comma-separated-values,text/plain','.csv')),
+      wellPanel(
+        div(align="center",fileInput(inputId = 'train_data', label = tags$div('train set *',style='color:blue'),accept=c('text/csv','text/comma-separated-values,text/plain','.csv'))),
+        div(align="center",fileInput(inputId = 'test_data', label = tags$div('test set *',style='color:blue'), accept=c('text/csv','text/comma-separated-values,text/plain','.csv'))),
+        div(align="center",checkboxInput("file_param","Show fileReader parameters",FALSE)),
+        conditionalPanel(condition = "input.file_param==true",
+                         checkboxInput(inputId = 'header',label = 'header',value = TRUE),
+                         radioButtons(inputId = 'separator',label = 'sep',choices = c(Comma=',',Semicolon=';',Tab='\t'),',')
+        )
+      ),
 
-      fileInput(inputId = 'test_data', label = tags$div('test set *',style='color:blue'), accept=c('text/csv','text/comma-separated-values,text/plain','.csv')),
+      wellPanel(
+        div(align="center",checkboxInput("randomForest_param","Show randomForest parameters",FALSE)),
+        conditionalPanel(condition = "input.randomForest_param==true",
+                         div(align="center",selectInput(inputId = 'type',label = tags$div('type',style='color:blue'),choices = c('Classification','Regression'))),
+                         div(align="center",numericInput(inputId = "ntree", label = tags$div('ntree',style='color:blue'), NA)),
+                         helpText(tags$div('Number of trees to grow',style='color:red')),
+                         div(align="center",numericInput(inputId = "mtry", label =tags$div('mtry',style='color:blue') , NA)),
+                         helpText(tags$div('Number of variables randomly sampled as candidates at each split',style='color:red')),
+                         div(align="center",selectInput(inputId = 'replace',label = tags$div('replace',style='color:blue'),choices = c('YES','NO'),selected = 'YES')),
+                         helpText(tags$div('Should sampling of cases be done with or without replacement?',style='color:red')),
+                         div(align="center",numericInput(inputId = "sampsize", label =tags$div('sampsize',style='color:blue') , NA)),
+                         helpText(tags$div('Size(s) of sample to draw',style='color:red')),
+                         div(align="center",selectInput(inputId = 'importance',label = tags$div('importance',style='color:blue'),choices = c('YES','NO'),selected = 'YES')),
+                         helpText(tags$div('Should importance of predictors be assessed?',style='color:red')),
+                         div(align="center",selectInput(inputId = 'proximity',label =tags$div('proximity',style='color:blue') ,choices = c('YES','NO'),selected = 'YES')),
+                         helpText(tags$div('Should proximity measure among the rows be calculated?',style='color:red')),
+                         div(align="center",selectInput(inputId = 'oob.prox',label = tags$div('oob.prox',style='color:blue'),choices = c('YES','NO'),selected = 'YES')),
+                         helpText(tags$div('Should proximity be calculated only on "out-of-bag" data?',style='color:red')),
+                         div(align="center",selectInput(inputId = 'keep.forest',label = tags$div('keep.forest',style='color:blue'),choices = c('YES','NO'),selected = 'YES')),
+                         helpText(tags$div('Should forest be retained in the output object?',style='color:red'))
+                         #div(align="center",numericInput(inputId = "getTree", label =tags$div('getTree',style='color:blue') , NA)),
+                         #helpText(tags$div('Extract a single tree from a forest',style='color:red'))
+        )
+      ),
 
-      checkboxInput(inputId = 'header',label = 'header',value = TRUE),
+      wellPanel(div(align="center",checkboxInput("graph_save_param","Show Graph Save Options",FALSE)),
+                div(align="center",conditionalPanel(condition = "input.graph_save_param==true",
+                                                    radioButtons(inputId = "paramdown",label = "",choices=list("JPG"="jpg","PNG"="png","PDF"="pdf"),selected="jpg")
+                ))
+      ),
 
-radioButtons(inputId = 'separator',label = 'sep',choices = c(Comma=',',Semicolon=';',Tab='\t'),','),
+      div(align="center",actionButton(inputId = "quit", label = div(align="center",'Quit the app',style='color:blue'))),
+      tags$br(),
+      wellPanel(
+        tags$div('R session info',style='color:blue'),
+        verbatimTextOutput("info1.out")
+      )
 
-      selectInput(inputId = 'type',label = tags$div('type',style='color:blue'),choices = c('Classification','Regression')),
 
-      tags$hr(),
-
-      numericInput(inputId = "ntree", label = tags$div('ntree',style='color:blue'), NA),
-
-      helpText(tags$div('Number of trees to grow',style='color:red')),
-
-      tags$hr(),
-
-      numericInput(inputId = "mtry", label =tags$div('mtry',style='color:blue') , NA),
-
-      helpText(tags$div('Number of variables randomly sampled as candidates at each split',style='color:red')),
-
-      tags$hr(),
-
-      selectInput(inputId = 'replace',label = tags$div('replace',style='color:blue'),choices = c('YES','NO'),selected = 'YES'),
-
-      helpText(tags$div('Should sampling of cases be done with or without replacement?',style='color:red')),
-
-      tags$hr(),
-
-      numericInput(inputId = "sampsize", label =tags$div('sampsize',style='color:blue') , NA),
-
-      helpText(tags$div('Size(s) of sample to draw',style='color:red')),
-
-      tags$hr(),
-
-#      numericInput(inputId = "nodesize", label = tags$div('nodesize',style='color:blue'), NA),
-
-#      helpText(tags$div('Minimum size of terminal nodes',style='color:red')),
-
-#      tags$hr(),
-
-#      numericInput(inputId = "maxnodes", label = tags$div('maxnodes',style='color:blue'), NA),
-
-#      helpText(tags$div('Maximum number of terminal nodes trees in the forest can have',style='color:red')),
-
-#      tags$hr(),
-
-      selectInput(inputId = 'importance',label = tags$div('importance',style='color:blue'),choices = c('YES','NO'),selected = 'YES'),
-
-      helpText(tags$div('Should importance of predictors be assessed?',style='color:red')),
-
-      tags$hr(),
-
-#      numericInput(inputId = "nPerm", label = tags$div('nPerm',style='color:blue'), NA),
-
-#      helpText(tags$div('Number of times the OOB data are permuted per tree for assessing variable importance',style='color:red')),
-
-#      tags$hr(),
-
-      selectInput(inputId = 'proximity',label =tags$div('proximity',style='color:blue') ,choices = c('YES','NO'),selected = 'YES'),
-
-      helpText(tags$div('Should proximity measure among the rows be calculated?',style='color:red')),
-
-      tags$hr(),
-
-      selectInput(inputId = 'oob.prox',label = tags$div('oob.prox',style='color:blue'),choices = c('YES','NO'),selected = 'YES'),
-
-      helpText(tags$div('Should proximity be calculated only on "out-of-bag" data?',style='color:red')),
-
-      tags$hr(),
-
-      selectInput(inputId = 'keep.forest',label = tags$div('keep.forest',style='color:blue'),choices = c('YES','NO'),selected = 'YES'),
-
-      helpText(tags$div('Should forest be retained in the output object?',style='color:red')),
-
-      tags$hr(),
-
-      numericInput(inputId = "getTree", label =tags$div('getTree',style='color:blue') , NA),
-
-      helpText(tags$div('Extract a single tree from a forest',style='color:red')),
-
-      tags$hr(),
-
-      actionButton(inputId = "quit", label = tags$div('Stop',style='color:blue')),
-
-      helpText(tags$div('Press Quit to exit the application',style='color:red'))
     ),
     mainPanel(
       tabsetPanel(id = "tabs",
                   tabPanel("train set", dataTableOutput('train_data')),
                   tabPanel("test set", dataTableOutput("test_data")),
-                  tabPanel("model summary", verbatimTextOutput("summary")),
-                  tabPanel("getTree", verbatimTextOutput("getTree")),
-                  tabPanel("margin plot", plotOutput("marginPlot")),
-                  tabPanel("randomForest plot", plotOutput("randomForest"))
+                  tabPanel("model summary",
+                           div(align="center",textInput(inputId = 'title',label = 'title',value = 'title')),
+                           div(align="center",textInput(inputId = 'author',label = 'author',value = 'author')),
+                           #dateInput(inputId = 'date',label = 'date',value = Sys.Date(),format = 'yyyy-mm-dd',startview = 'month',language = 'en'),
+                           div(align="center",radioButtons('format', 'Document format', c('PDF', 'HTML', 'Word'),inline = TRUE)),
+                           div(align="center",downloadButton(outputId = 'downloadReport',label = 'Download Report')),
+                           tags$br(),
+                           verbatimTextOutput("summary"),
+                           tags$br(),
+                           tags$br(),
+                           p(downloadButton("downloadTree","Download the summary"),align="center")
+                  ),
+                  tabPanel("getTree",
+                           div(align="center",numericInput(inputId = "getTree", label =tags$div('getTree',style='color:blue') , NA)),
+                           tags$br(),
+                           tags$br(),
+                          # helpText(tags$div('Extract a single tree from a forest',style='color:red')),
+                           verbatimTextOutput("getTree"),
+                           tags$br(),
+                           tags$br(),
+                           p(downloadButton("downloadRandomForest","Download the summary"),align="center")
+                  ),
+                  tabPanel("margin plot", plotOutput("marginPlot"),
+                           tags$br(),
+                           tags$br(),
+                           div(align="center",conditionalPanel(
+                             condition="input.paramdown=='jpg'",
+                             p(downloadButton("downloadData1","Download as jpg"),align="center"))),
+                           div(align="center",conditionalPanel(
+                             condition="input.paramdown=='png'",
+                             p(downloadButton("downloadData2","Download as png"),align="center"))),
+                           div(align="center",conditionalPanel(
+                             condition="input.paramdown=='pdf'",
+                             p(downloadButton("downloadData3","Download as pdf"),align="center")))
+                  ),
+                  tabPanel("randomForest plot", plotOutput("randomForest"),
+                           tags$br(),
+                           tags$br(),
+                           div(align="center",conditionalPanel(
+                             condition="input.paramdown=='jpg'",
+                             p(downloadButton("downloadData4","Download as jpg"),align="center"))),
+                           div(align="center",conditionalPanel(
+                             condition="input.paramdown=='png'",
+                             p(downloadButton("downloadData5","Download as png"),align="center"))),
+                           div(align="center",conditionalPanel(
+                             condition="input.paramdown=='pdf'",
+                             p(downloadButton("downloadData6","Download as pdf"),align="center")))
+                  ),
+                  tabPanel(title = 'features',
+                           verbatimTextOutput("names")
+                  ),
+                  tabPanel("About",
+                           strong('randomForest with Shiny'),
+                           p("The goal of this project is to help students and researchers run randomForest analysis as easily as possible."),
+                           p('This application is developed with',
+                             a("Shiny.", href="http://www.rstudio.com/shiny/", target="_blank"),
+                             ''),
+                           p('The code for this application is available at this',
+                             a('GitHub.', href='https://github.com/guanlongtianzi/shinyOfRandomForest', target="_blank")),
+
+
+                           br(),
+
+                           strong('List of Packages Used'), br(),
+
+                           aceEditor("myEditor1", value = '#R Scripts \nrequire(shiny)\nrequire(randomForest)\nrequire(ggplot2)\nrequire(shinyAce)', mode="r",height = '200px',fontSize = 15,theme="ambiance"),
+
+                           #                           code('library(shiny)'),br(),
+                           #                           code('library(randomForest)'),br(),
+                           #                           code('library(ggplot2)'),br(),
+
+
+                           br(),
+
+                           strong('Authors'),
+
+                           HTML('<div style="clear: left;"><img src="my.jpg" alt="" style="float: left; margin-right:5px" /></div>'),
+
+                           br(),
+
+                           p(br())
+
+                  )
+
       )
     )
-
 
   )
 )
