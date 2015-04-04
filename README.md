@@ -7,3 +7,6 @@ if(!require(shiny)) {
 }
 runGitHub(username = 'guanlongtianzi',repo = 'shinyOfRandomForest') 
 ```
+各个参数的介绍如下：
+- ntree
+Number of trees to grow. This should not be set to too small a number, to ensure that every input row gets predicted at least a few times.
