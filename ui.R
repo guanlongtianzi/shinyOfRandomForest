@@ -19,23 +19,14 @@ shinyUI(bootstrapPage(fluidPage(
         conditionalPanel(condition = "input.randomForest_param==true",
                          div(align="center",selectInput(inputId = 'type',label = tags$div('type',style='color:blue'),choices = c('Classification','Regression'))),
                          div(align="center",numericInput(inputId = "ntree", label = tags$div('ntree',style='color:blue'), NA)),
-                         helpText(tags$div('Number of trees to grow',style='color:red')),
                          div(align="center",numericInput(inputId = "mtry", label =tags$div('mtry',style='color:blue') , NA)),
-                         helpText(tags$div('Number of variables randomly sampled as candidates at each split',style='color:red')),
                          div(align="center",selectInput(inputId = 'replace',label = tags$div('replace',style='color:blue'),choices = c('YES','NO'),selected = 'YES')),
-                         helpText(tags$div('Should sampling of cases be done with or without replacement?',style='color:red')),
                          div(align="center",numericInput(inputId = "sampsize", label =tags$div('sampsize',style='color:blue') , NA)),
-                         helpText(tags$div('Size(s) of sample to draw',style='color:red')),
                          div(align="center",selectInput(inputId = 'importance',label = tags$div('importance',style='color:blue'),choices = c('YES','NO'),selected = 'YES')),
-                         helpText(tags$div('Should importance of predictors be assessed?',style='color:red')),
                          div(align="center",selectInput(inputId = 'proximity',label =tags$div('proximity',style='color:blue') ,choices = c('YES','NO'),selected = 'YES')),
-                         helpText(tags$div('Should proximity measure among the rows be calculated?',style='color:red')),
                          div(align="center",selectInput(inputId = 'oob.prox',label = tags$div('oob.prox',style='color:blue'),choices = c('YES','NO'),selected = 'YES')),
-                         helpText(tags$div('Should proximity be calculated only on "out-of-bag" data?',style='color:red')),
-                         div(align="center",selectInput(inputId = 'keep.forest',label = tags$div('keep.forest',style='color:blue'),choices = c('YES','NO'),selected = 'YES')),
-                         helpText(tags$div('Should forest be retained in the output object?',style='color:red'))
-                         #div(align="center",numericInput(inputId = "getTree", label =tags$div('getTree',style='color:blue') , NA)),
-                         #helpText(tags$div('Extract a single tree from a forest',style='color:red'))
+                         div(align="center",selectInput(inputId = 'keep.forest',label = tags$div('keep.forest',style='color:blue'),choices = c('YES','NO'),selected = 'YES'))
+
         )
       ),
 
@@ -84,6 +75,34 @@ shinyUI(bootstrapPage(fluidPage(
                            tags$br(),
                            div(align="center",conditionalPanel(
                              condition="input.paramdown=='jpg'",
+                             p(downloadButton("downloadData16","Download as jpg"),align="center"))),
+                           div(align="center",conditionalPanel(
+                             condition="input.paramdown=='png'",
+                             p(downloadButton("downloadData17","Download as png"),align="center"))),
+                           div(align="center",conditionalPanel(
+                             condition="input.paramdown=='pdf'",
+                             p(downloadButton("downloadData18","Download as pdf"),align="center"))),
+                           tags$br(),
+                           tags$br(),
+                           plotOutput("randomForest"),
+                           tags$br(),
+                           tags$br(),
+                           div(align="center",conditionalPanel(
+                             condition="input.paramdown=='jpg'",
+                             p(downloadButton("downloadData19","Download as jpg"),align="center"))),
+                           div(align="center",conditionalPanel(
+                             condition="input.paramdown=='png'",
+                             p(downloadButton("downloadData20","Download as png"),align="center"))),
+                           div(align="center",conditionalPanel(
+                             condition="input.paramdown=='pdf'",
+                             p(downloadButton("downloadData21","Download as pdf"),align="center"))),
+                           tags$br(),
+                           tags$br(),
+                           plotOutput("pr_curve"),
+                           tags$br(),
+                           tags$br(),
+                           div(align="center",conditionalPanel(
+                             condition="input.paramdown=='jpg'",
                              p(downloadButton("downloadData1","Download as jpg"),align="center"))),
                            div(align="center",conditionalPanel(
                              condition="input.paramdown=='png'",
@@ -93,7 +112,7 @@ shinyUI(bootstrapPage(fluidPage(
                              p(downloadButton("downloadData3","Download as pdf"),align="center"))),
                            tags$br(),
                            tags$br(),
-                           plotOutput("randomForest"),
+                           plotOutput("Cumulative_curve"),
                            tags$br(),
                            tags$br(),
                            div(align="center",conditionalPanel(
@@ -104,39 +123,51 @@ shinyUI(bootstrapPage(fluidPage(
                              p(downloadButton("downloadData5","Download as png"),align="center"))),
                            div(align="center",conditionalPanel(
                              condition="input.paramdown=='pdf'",
-                             p(downloadButton("downloadData6","Download as pdf"),align="center")))
+                             p(downloadButton("downloadData6","Download as pdf"),align="center"))),
+                           tags$br(),
+                           tags$br(),
+                           plotOutput("roc_curve"),
+                           tags$br(),
+                           tags$br(),
+                           div(align="center",conditionalPanel(
+                             condition="input.paramdown=='jpg'",
+                             p(downloadButton("downloadData7","Download as jpg"),align="center"))),
+                           div(align="center",conditionalPanel(
+                             condition="input.paramdown=='png'",
+                             p(downloadButton("downloadData8","Download as png"),align="center"))),
+                           div(align="center",conditionalPanel(
+                             condition="input.paramdown=='pdf'",
+                             p(downloadButton("downloadData9","Download as pdf"),align="center"))),
+                           tags$br(),
+                           tags$br(),
+                           plotOutput("lift_curve"),
+                           tags$br(),
+                           tags$br(),
+                           div(align="center",conditionalPanel(
+                             condition="input.paramdown=='jpg'",
+                             p(downloadButton("downloadData10","Download as jpg"),align="center"))),
+                           div(align="center",conditionalPanel(
+                             condition="input.paramdown=='png'",
+                             p(downloadButton("downloadData11","Download as png"),align="center"))),
+                           div(align="center",conditionalPanel(
+                             condition="input.paramdown=='pdf'",
+                             p(downloadButton("downloadData12","Download as pdf"),align="center"))),
+                           tags$br(),
+                           tags$br(),
+                           plotOutput("grid"),
+                           tags$br(),
+                           tags$br(),
+                           div(align="center",conditionalPanel(
+                             condition="input.paramdown=='jpg'",
+                             p(downloadButton("downloadData13","Download as jpg"),align="center"))),
+                           div(align="center",conditionalPanel(
+                             condition="input.paramdown=='png'",
+                             p(downloadButton("downloadData14","Download as png"),align="center"))),
+                           div(align="center",conditionalPanel(
+                             condition="input.paramdown=='pdf'",
+                             p(downloadButton("downloadData15","Download as pdf"),align="center")))
 
                   ),
-
-                  #                  tabPanel("margin plot", plotOutput("marginPlot"),
-                  #                           tags$br(),
-                  #                           tags$br(),
-                  #                           div(align="center",conditionalPanel(
-                  #                             condition="input.paramdown=='jpg'",
-                  #                             p(downloadButton("downloadData1","Download as jpg"),align="center"))),
-                  #                           div(align="center",conditionalPanel(
-                  #                             condition="input.paramdown=='png'",
-                  #                             p(downloadButton("downloadData2","Download as png"),align="center"))),
-                  #                           div(align="center",conditionalPanel(
-                  #                             condition="input.paramdown=='pdf'",
-                  #                             p(downloadButton("downloadData3","Download as pdf"),align="center")))
-                  #                  ),
-                  #                  tabPanel("randomForest plot", plotOutput("randomForest"),
-                  #                           tags$br(),
-                  #                           tags$br(),
-                  #                           div(align="center",conditionalPanel(
-                  #                             condition="input.paramdown=='jpg'",
-                  #                             p(downloadButton("downloadData4","Download as jpg"),align="center"))),
-                  #                           div(align="center",conditionalPanel(
-                  #                             condition="input.paramdown=='png'",
-                  #                             p(downloadButton("downloadData5","Download as png"),align="center"))),
-                  #                           div(align="center",conditionalPanel(
-                  #                             condition="input.paramdown=='pdf'",
-                  #                             p(downloadButton("downloadData6","Download as pdf"),align="center")))
-                  #                  ),
-                  #                 tabPanel(title = 'features',
-                  #                           verbatimTextOutput("names")
-                  #                  ),
                   tabPanel("About",
                            strong('randomForest with Shiny'),
                            p("The goal of this project is to help students and researchers run randomForest analysis as easily as possible."),
@@ -150,10 +181,6 @@ shinyUI(bootstrapPage(fluidPage(
                            strong('List of Packages Used'), br(),
 
                            aceEditor("myEditor1", value = '#R Scripts \nrequire(shiny)\nrequire(randomForest)\nrequire(ggplot2)\nrequire(shinyAce)\nrequire(rmarkdown)', mode="r",height = '200px',fontSize = 15,theme="ambiance"),
-
-                           #                           code('library(shiny)'),br(),
-                           #                           code('library(randomForest)'),br(),
-                           #                           code('library(ggplot2)'),br(),
                            br(),
                            strong('Authors'),
                            HTML('<div style="clear: left;"><img src="my.jpg" alt="" style="float: left; margin-right:5px" /></div>'),
@@ -164,12 +191,9 @@ shinyUI(bootstrapPage(fluidPage(
                              tags$div('R session info',style='color:blue'),
                              verbatimTextOutput("info1.out")
                            )
-
                   )
-
       )
     )
-
   )
 )
 )
