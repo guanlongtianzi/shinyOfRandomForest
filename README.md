@@ -1,9 +1,25 @@
 # shinyOfRandomForest
 基于shiny的随机森林，使用到了`shiny`、`randomForest`、`shinyAce`、`rmarkdown`、`ggplot2`等`R`包，使用方法为：
-```s
+```R
 if(!require(shiny)) {
   install.packages(pkgs = 'shiny',quiet = TRUE)
   require(shiny)
+}
+if(!require(randomForest)) {
+  install.packages(pkgs = 'randomForest',quiet = TRUE)
+  require(randomForest)
+}
+if(!require(shinyAce)) {
+  install.packages(pkgs = 'shinyAce',quiet = TRUE)
+  require(shinyAce)
+}
+if(!require(rmarkdown)) {
+  install.packages(pkgs = 'rmarkdown',quiet = TRUE)
+  require(rmarkdown)
+}
+if(!require(ggplot2)) {
+  install.packages(pkgs = 'ggplot2',quiet = TRUE)
+  require(ggplot2)
 }
 runGitHub(username = 'guanlongtianzi',repo = 'shinyOfRandomForest') 
 ```
